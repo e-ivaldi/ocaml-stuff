@@ -14,7 +14,9 @@ last [ "a" ; "b" ; "c" ; "d" ];;
 let compress list= 
   let rec aux compressed prev_ele is_first = function
     | [] -> compressed
-    | h::t -> if (prev_ele <> h || is_first) then aux (h::compressed) h false t else aux compressed h false t
+    | h::t -> if (prev_ele <> h || is_first) 
+              then aux (h::compressed) h false t 
+              else aux compressed h false t
   in List.rev (aux [] (List.hd list) true list);;
 
 compress ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
@@ -24,7 +26,43 @@ compress ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
 let pack list =
   let rec aux container consecutives prev_ele = function
     | [] -> consecutives::container 
-    | h::t -> if (h = prev_ele) then aux container (h::consecutives) h t else aux (consecutives::container) (h::[]) h t
+    | h::t -> if (h = prev_ele) 
+              then aux container (h::consecutives) h t 
+              else aux (consecutives::container) (h::[]) h t
   in List.rev (aux [] [] (List.hd list) list);;
 
 pack ["a";"a";"a";"b";"c";"c";"a";"a";"d";"d";"e";"e";"e";"e"];;
+
+(* 10: Run-length encoding of a list. (easy) *)
+
+let encode list =
+  let rec aux counter container consecutives prev_ele = function
+    | [] -> consecutives::container 
+    | h::t -> if (h = prev_ele) 
+              then aux (counter+1) container ((h,counter)::[]) h t 
+              else aux 2 (consecutives::container) ((h,1)::[]) h t
+  in List.rev (aux 1 [] [] (List.hd list) list);;
+
+encode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
+
+(* 11: Modified run-length encoding. (easy)
+       Modify the result of the previous problem in such a way that if an element has no duplicates it is simply copied into the result list.
+       Only elements with duplicates are transferred as (N E) lists.
+       Since OCaml lists are homogeneous, one needs to define a type to hold both single elements and sub-lists. *)
+
+type 'a rle =
+    | One of 'a
+    | Many of 'a * int;;
+
+let encode list =
+  let rec aux counter container consecutives prev_ele = function
+    | [] -> consecutives::container 
+    | h::t -> if (h = prev_ele) 
+              then aux (counter+1) container ((Many (h,counter))::[]) h t 
+              else aux 2 (consecutives::container) ((One h)::[]) h t
+  in List.rev (aux 1 [] [] (List.hd list) list);;
+
+encode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
+ 
+(* 12: Decode a run-length encoded list. (medium)
+       Given a run-length code list generated as specified in the previous problem, construct its uncompressed version. *)
