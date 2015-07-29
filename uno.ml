@@ -78,3 +78,42 @@ let decode list =
   in aux [] (List.rev list);; 
 
 decode [Many ("a",4); One "b"; Many ("c",2); Many ("a",2); One "d"; Many ("e",4)];;
+
+(* 14: Duplicate the elements of a list. (easy) *)
+
+let duplicate list = 
+  let rec repeat ele list = function
+    | 0 -> list
+    | _ as count -> repeat ele (ele::list) (count-1) in
+  let rec aux result = function
+    | [] -> result
+    | h::t -> aux (repeat h result 2) t  
+  in aux [] (List.rev list);;
+
+duplicate ["a";"b";"c";"c";"d"];;
+
+(* 15: Replicate the elements of a list a given number of times. (medium)*)
+
+let replicate list n = 
+  let rec repeat ele list = function
+    | 0 -> list
+    | _ as count -> repeat ele (ele::list) (count-1) in
+  let rec aux result = function
+    | [] -> result
+    | h::t -> aux (repeat h result n) t  
+  in aux [] (List.rev list);;
+
+replicate ["a";"b";"c"] 3;;
+
+(* 16: Drop every N'th element from a list. (medium) *)
+
+let drop list n = 
+  let rec aux result count = function
+    | [] -> result
+    | h::t -> if (count = n) 
+              then aux result 1 t 
+              else aux (h::result) (count+1) t
+  in List.rev(aux [] 1 list);;
+
+drop ["a";"b";"c";"d";"e";"f";"g";"h";"i";"j"] 3;;
+
