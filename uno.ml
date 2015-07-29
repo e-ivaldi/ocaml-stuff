@@ -56,13 +56,25 @@ type 'a rle =
 
 let encode list =
   let rec aux counter container consecutives prev_ele = function
-    | [] -> consecutives::container 
+    | [] -> (List.hd consecutives)::container 
     | h::t -> if (h = prev_ele) 
               then aux (counter+1) container ((Many (h,counter))::[]) h t 
-              else aux 2 (consecutives::container) ((One h)::[]) h t
+              else aux 2 ((List.hd consecutives)::container) ((One h)::[]) h t
   in List.rev (aux 1 [] [] (List.hd list) list);;
 
 encode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
  
 (* 12: Decode a run-length encoded list. (medium)
        Given a run-length code list generated as specified in the previous problem, construct its uncompressed version. *)
+
+let decode list =
+  let rec add_to_list ele list = function
+    | 0 -> list
+    | _ as count -> add_to_list ele (ele::list) (count-1) in
+  let rec aux result = function
+    | [] -> result
+    | One h::t -> aux (h::result) t
+    | Many (ele,n)::t -> aux (add_to_list ele result n) t
+  in aux [] (List.rev list);; 
+
+decode [Many ("a",4); One "b"; Many ("c",2); Many ("a",2); One "d"; Many ("e",4)];;
