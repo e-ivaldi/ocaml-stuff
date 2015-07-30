@@ -124,3 +124,32 @@ let drop list n =
 
 drop ["a";"b";"c";"d";"e";"f";"g";"h";"i";"j"] 3;;
 
+(* 17: Split a list into two parts; the length of the first part is given. (easy)
+
+If the length of the first part is longer than the entire list, then the first part is the list and the second part is empty. *)
+
+let split list first_part_length = 
+  let rec aux first_part_length first_part second_part = function
+    | [] -> (first_part,second_part)
+    | (h::t) -> if (first_part_length > 0)
+                then aux (first_part_length - 1) (h::first_part) second_part t
+                else aux 0 first_part (h::second_part) t
+  in aux first_part_length [] [] (List.rev(list));;
+
+split ["a";"b";"c";"d";"e";"f";"g";"h";"i";"j"] 3;;
+
+(* 18: Extract a slice from a list. (medium)
+
+Given two indices, i and k, the slice is the list containing the elements between the i'th and k'th element of the original list (both limits included). Start counting the elements with 0 (this is the way the List module numbers elements). *)
+
+let slice list x y =
+  let shift_list = function
+    | [] -> []
+    | (h::t) -> t in
+  let rec aux x y result list = match (x,y) with
+    | (_,-1) -> result 
+    | (0, _) -> aux 0 (y-1) ((List.hd list)::result) (shift_list list)
+    |  _     -> aux (x-1) (y-1) [] (shift_list list)
+  in List.rev(aux x y [] list);;
+
+slice ["a";"b";"c";"d";"e";"f";"g";"h";"i";"j"] 2 6;;
