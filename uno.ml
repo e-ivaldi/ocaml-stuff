@@ -12,36 +12,39 @@ last [ "a" ; "b" ; "c" ; "d" ];;
 (* 8: Eliminate consecutive duplicates of list elements. (medium) *)
 
 let compress list= 
-  let rec aux compressed prev_ele is_first = function
+  let rec aux compressed = function
     | [] -> compressed
-    | h::t -> if (prev_ele <> h || is_first) 
-              then aux (h::compressed) h false t 
-              else aux compressed h false t
-  in List.rev (aux [] (List.hd list) true list);;
+    | [x] -> x::compressed
+    | h::(h'::t) -> if (h <> h') 
+              then aux (h::compressed) (h'::t) 
+              else aux compressed (h'::t)
+  in List.rev (aux [] list);;
 
 compress ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
 
 (* 9: Pack consecutive duplicates of list elements into sublists. (medium) *)
 
 let pack list =
-  let rec aux container consecutives prev_ele = function
+  let rec aux container consecutives = function
     | [] -> consecutives::container 
-    | h::t -> if (h = prev_ele) 
-              then aux container (h::consecutives) h t 
-              else aux (consecutives::container) (h::[]) h t
-  in List.rev (aux [] [] (List.hd list) list);;
+    | [x] -> aux (container) (x::consecutives) []
+    | h::(h'::t) -> if (h = h') 
+              then aux container (h::consecutives) (h'::t) 
+              else aux ((h::consecutives)::container) [] (h'::t)
+  in List.rev (aux [] [] list);;
 
 pack ["a";"a";"a";"b";"c";"c";"a";"a";"d";"d";"e";"e";"e";"e"];;
 
 (* 10: Run-length encoding of a list. (easy) *)
 
 let encode list =
-  let rec aux counter container consecutives prev_ele = function
-    | [] -> consecutives::container 
-    | h::t -> if (h = prev_ele) 
-              then aux (counter+1) container ((h,counter)::[]) h t 
-              else aux 2 (consecutives::container) ((h,1)::[]) h t
-  in List.rev (aux 1 [] [] (List.hd list) list);;
+  let rec aux counter container = function
+    | [] -> container 
+    | [x] -> aux 0 ((x,(counter+1))::container) [] 
+    | h::(h'::t) -> if (h = h') 
+              then aux (counter+1) container (h'::t) 
+              else aux 0 ((h,(counter+1))::container) (h'::t)
+  in List.rev (aux 0 [] list);;
 
 encode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
 
@@ -55,12 +58,16 @@ type 'a rle =
     | Many of 'a * int;;
 
 let encode list =
-  let rec aux counter container consecutives prev_ele = function
-    | [] -> (List.hd consecutives)::container 
-    | h::t -> if (h = prev_ele) 
-              then aux (counter+1) container ((Many (h,counter))::[]) h t 
-              else aux 2 ((List.hd consecutives)::container) ((One h)::[]) h t
-  in List.rev (aux 1 [] [] (List.hd list) list);;
+  let get_type x = function
+    | 1 -> One x
+    | _ as counter -> Many (x, counter) in
+  let rec aux counter container = function
+    | [] -> container 
+    | [x] -> aux 0 ((get_type x (counter+1))::container) [] 
+    | h::(h'::t) -> if (h = h') 
+              then aux (counter+1) container (h'::t) 
+              else aux 0 ((get_type h (counter+1))::container) (h'::t)
+  in List.rev (aux 0 [] list);;
 
 encode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
  
